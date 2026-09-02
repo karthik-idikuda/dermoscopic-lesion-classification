@@ -1,0 +1,551 @@
+{
+  "checkpoint": "models/best_model.pth",
+  "weights_status": "trained",
+  "training_method": "linear_probe_on_frozen_imagenet_features",
+  "temperature": 0.9808,
+  "grouped_by_lesion": true,
+  "test_images": 1523,
+  "test_lesions": 1120,
+  "accuracy": 0.5496,
+  "balanced_accuracy": 0.5369,
+  "macro_f1": 0.3791,
+  "weighted_f1": 0.61,
+  "per_class": [
+    {
+      "code": "akiec",
+      "name": "Actinic Keratosis / Intraepithelial Carcinoma",
+      "precision": 0.2021,
+      "recall": 0.4318,
+      "specificity": 0.9493,
+      "f1": 0.2754,
+      "support": 44
+    },
+    {
+      "code": "bcc",
+      "name": "Basal Cell Carcinoma",
+      "precision": 0.3175,
+      "recall": 0.5797,
+      "specificity": 0.9409,
+      "f1": 0.4103,
+      "support": 69
+    },
+    {
+      "code": "bkl",
+      "name": "Benign Keratosis-like Lesion",
+      "precision": 0.4559,
+      "recall": 0.5196,
+      "specificity": 0.9174,
+      "f1": 0.4856,
+      "support": 179
+    },
+    {
+      "code": "df",
+      "name": "Dermatofibroma",
+      "precision": 0.0645,
+      "recall": 0.5556,
+      "specificity": 0.9037,
+      "f1": 0.1156,
+      "support": 18
+    },
+    {
+      "code": "mel",
+      "name": "Melanoma",
+      "precision": 0.364,
+      "recall": 0.5549,
+      "specificity": 0.883,
+      "f1": 0.4396,
+      "support": 164
+    },
+    {
+      "code": "nv",
+      "name": "Melanocytic Nevus",
+      "precision": 0.9612,
+      "recall": 0.5566,
+      "specificity": 0.9539,
+      "f1": 0.705,
+      "support": 1024
+    },
+    {
+      "code": "vasc",
+      "name": "Vascular Lesion",
+      "precision": 0.1386,
+      "recall": 0.56,
+      "specificity": 0.9419,
+      "f1": 0.2222,
+      "support": 25
+    }
+  ],
+  "confusion_matrix": [
+    [
+      19,
+      9,
+      7,
+      5,
+      3,
+      1,
+      0
+    ],
+    [
+      11,
+      40,
+      7,
+      6,
+      4,
+      0,
+      1
+    ],
+    [
+      19,
+      20,
+      93,
+      6,
+      28,
+      7,
+      6
+    ],
+    [
+      2,
+      4,
+      1,
+      10,
+      1,
+      0,
+      0
+    ],
+    [
+      11,
+      10,
+      19,
+      9,
+      91,
+      14,
+      10
+    ],
+    [
+      32,
+      36,
+      75,
+      119,
+      122,
+      570,
+      70
+    ],
+    [
+      0,
+      7,
+      2,
+      0,
+      1,
+      1,
+      14
+    ]
+  ],
+  "confusion_matrix_normalized": [
+    [
+      0.4318,
+      0.2045,
+      0.1591,
+      0.1136,
+      0.0682,
+      0.0227,
+      0.0
+    ],
+    [
+      0.1594,
+      0.5797,
+      0.1014,
+      0.087,
+      0.058,
+      0.0,
+      0.0145
+    ],
+    [
+      0.1061,
+      0.1117,
+      0.5196,
+      0.0335,
+      0.1564,
+      0.0391,
+      0.0335
+    ],
+    [
+      0.1111,
+      0.2222,
+      0.0556,
+      0.5556,
+      0.0556,
+      0.0,
+      0.0
+    ],
+    [
+      0.0671,
+      0.061,
+      0.1159,
+      0.0549,
+      0.5549,
+      0.0854,
+      0.061
+    ],
+    [
+      0.0312,
+      0.0352,
+      0.0732,
+      0.1162,
+      0.1191,
+      0.5566,
+      0.0684
+    ],
+    [
+      0.0,
+      0.28,
+      0.08,
+      0.0,
+      0.04,
+      0.04,
+      0.56
+    ]
+  ],
+  "roc_auc": {
+    "akiec": 0.809,
+    "bcc": 0.8529,
+    "bkl": 0.8213,
+    "df": 0.7598,
+    "mel": 0.8085,
+    "nv": 0.9084,
+    "vasc": 0.9087,
+    "macro": 0.8384
+  },
+  "calibration": {
+    "ece_uncalibrated": 0.1015,
+    "ece_calibrated": 0.0963,
+    "reliability": [
+      {
+        "bin": [
+          0.0,
+          0.067
+        ],
+        "count": 0,
+        "accuracy": null,
+        "confidence": null
+      },
+      {
+        "bin": [
+          0.067,
+          0.133
+        ],
+        "count": 0,
+        "accuracy": null,
+        "confidence": null
+      },
+      {
+        "bin": [
+          0.133,
+          0.2
+        ],
+        "count": 2,
+        "accuracy": 0.0,
+        "confidence": 0.1941
+      },
+      {
+        "bin": [
+          0.2,
+          0.267
+        ],
+        "count": 59,
+        "accuracy": 0.3729,
+        "confidence": 0.2494
+      },
+      {
+        "bin": [
+          0.267,
+          0.333
+        ],
+        "count": 178,
+        "accuracy": 0.3764,
+        "confidence": 0.3042
+      },
+      {
+        "bin": [
+          0.333,
+          0.4
+        ],
+        "count": 254,
+        "accuracy": 0.4882,
+        "confidence": 0.3667
+      },
+      {
+        "bin": [
+          0.4,
+          0.467
+        ],
+        "count": 279,
+        "accuracy": 0.5484,
+        "confidence": 0.4313
+      },
+      {
+        "bin": [
+          0.467,
+          0.533
+        ],
+        "count": 231,
+        "accuracy": 0.5584,
+        "confidence": 0.5003
+      },
+      {
+        "bin": [
+          0.533,
+          0.6
+        ],
+        "count": 168,
+        "accuracy": 0.6071,
+        "confidence": 0.5657
+      },
+      {
+        "bin": [
+          0.6,
+          0.667
+        ],
+        "count": 112,
+        "accuracy": 0.6964,
+        "confidence": 0.6331
+      },
+      {
+        "bin": [
+          0.667,
+          0.733
+        ],
+        "count": 78,
+        "accuracy": 0.7436,
+        "confidence": 0.6991
+      },
+      {
+        "bin": [
+          0.733,
+          0.8
+        ],
+        "count": 53,
+        "accuracy": 0.6415,
+        "confidence": 0.7599
+      },
+      {
+        "bin": [
+          0.8,
+          0.867
+        ],
+        "count": 54,
+        "accuracy": 0.5926,
+        "confidence": 0.8306
+      },
+      {
+        "bin": [
+          0.867,
+          0.933
+        ],
+        "count": 34,
+        "accuracy": 0.6176,
+        "confidence": 0.8944
+      },
+      {
+        "bin": [
+          0.933,
+          1.0
+        ],
+        "count": 21,
+        "accuracy": 0.8095,
+        "confidence": 0.9604
+      }
+    ]
+  },
+  "melanoma_operating_curve": [
+    {
+      "threshold": 0.05,
+      "sensitivity": 0.872,
+      "specificity": 0.5085,
+      "precision": 0.1763,
+      "flagged": 811
+    },
+    {
+      "threshold": 0.1,
+      "sensitivity": 0.7622,
+      "specificity": 0.6726,
+      "precision": 0.2193,
+      "flagged": 570
+    },
+    {
+      "threshold": 0.15,
+      "sensitivity": 0.6768,
+      "specificity": 0.7439,
+      "precision": 0.2418,
+      "flagged": 459
+    },
+    {
+      "threshold": 0.2,
+      "sensitivity": 0.628,
+      "specificity": 0.8057,
+      "precision": 0.2807,
+      "flagged": 367
+    },
+    {
+      "threshold": 0.25,
+      "sensitivity": 0.5854,
+      "specificity": 0.8521,
+      "precision": 0.3232,
+      "flagged": 297
+    },
+    {
+      "threshold": 0.3,
+      "sensitivity": 0.5549,
+      "specificity": 0.8786,
+      "precision": 0.3555,
+      "flagged": 256
+    },
+    {
+      "threshold": 0.35,
+      "sensitivity": 0.5183,
+      "specificity": 0.9058,
+      "precision": 0.3991,
+      "flagged": 213
+    },
+    {
+      "threshold": 0.4,
+      "sensitivity": 0.4939,
+      "specificity": 0.9198,
+      "precision": 0.4263,
+      "flagged": 190
+    },
+    {
+      "threshold": 0.45,
+      "sensitivity": 0.4329,
+      "specificity": 0.9404,
+      "precision": 0.4671,
+      "flagged": 152
+    },
+    {
+      "threshold": 0.5,
+      "sensitivity": 0.378,
+      "specificity": 0.9492,
+      "precision": 0.4733,
+      "flagged": 131
+    },
+    {
+      "threshold": 0.55,
+      "sensitivity": 0.3415,
+      "specificity": 0.9654,
+      "precision": 0.5437,
+      "flagged": 103
+    },
+    {
+      "threshold": 0.6,
+      "sensitivity": 0.2683,
+      "specificity": 0.9757,
+      "precision": 0.5714,
+      "flagged": 77
+    },
+    {
+      "threshold": 0.65,
+      "sensitivity": 0.2317,
+      "specificity": 0.9809,
+      "precision": 0.5938,
+      "flagged": 64
+    },
+    {
+      "threshold": 0.7,
+      "sensitivity": 0.2073,
+      "specificity": 0.9845,
+      "precision": 0.6182,
+      "flagged": 55
+    },
+    {
+      "threshold": 0.75,
+      "sensitivity": 0.1646,
+      "specificity": 0.986,
+      "precision": 0.587,
+      "flagged": 46
+    },
+    {
+      "threshold": 0.8,
+      "sensitivity": 0.1341,
+      "specificity": 0.9882,
+      "precision": 0.5789,
+      "flagged": 38
+    },
+    {
+      "threshold": 0.85,
+      "sensitivity": 0.0976,
+      "specificity": 0.9956,
+      "precision": 0.7273,
+      "flagged": 22
+    },
+    {
+      "threshold": 0.9,
+      "sensitivity": 0.0488,
+      "specificity": 0.9978,
+      "precision": 0.7273,
+      "flagged": 11
+    },
+    {
+      "threshold": 0.95,
+      "sensitivity": 0.0122,
+      "specificity": 1.0,
+      "precision": 1.0,
+      "flagged": 2
+    }
+  ],
+  "safety_net": {
+    "true_melanoma": 164,
+    "melanoma_escalated": 97,
+    "melanoma_catch_rate": 0.5915,
+    "benign_escalated": 191,
+    "benign_total": 1246,
+    "benign_escalation_rate": 0.1533,
+    "tier_distribution": {
+      "CRITICAL": 55,
+      "HIGH": 245,
+      "LOW": 341,
+      "MODERATE": 882
+    }
+  },
+  "splits": {
+    "grouped_by_lesion": true,
+    "train": {
+      "images": 7010,
+      "lesions": 5230,
+      "class_counts": {
+        "akiec": 232,
+        "bcc": 374,
+        "bkl": 759,
+        "df": 77,
+        "mel": 786,
+        "nv": 4683,
+        "vasc": 99
+      }
+    },
+    "val": {
+      "images": 1482,
+      "lesions": 1120,
+      "class_counts": {
+        "akiec": 51,
+        "bcc": 71,
+        "bkl": 161,
+        "df": 20,
+        "mel": 163,
+        "nv": 998,
+        "vasc": 18
+      }
+    },
+    "test": {
+      "images": 1523,
+      "lesions": 1120,
+      "class_counts": {
+        "akiec": 44,
+        "bcc": 69,
+        "bkl": 179,
+        "df": 18,
+        "mel": 164,
+        "nv": 1024,
+        "vasc": 25
+      }
+    },
+    "train_eval_lesion_overlap": 0
+  }
+}

@@ -1,0 +1,24 @@
+services:
+  - type: web
+    name: dermoscopic-lesion-classifier
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    plan: free
+    healthCheckPath: /api/health
+    envVars:
+      # Free-tier CPU is a fraction of one core. Dropping test-time
+      # augmentation and MC-dropout passes keeps each request to a single
+      # forward pass so it doesn't time out or exceed the 512MB memory limit.
+      # Raise these back up (DERM_TTA=5, DERM_MC_PASSES=10) on a paid plan.
+      - key: DERM_TTA
+        value: "1"
+      - key: DERM_MC_PASSES
+        value: "0"
+      - key: DERM_CORS_ORIGINS
+        value: "*"
+      - key: PYTHONUNBUFFERED
+        value: "1"
+      # Unset = unauthenticated (matches the current app configuration).
+      # To require a key, add DERM_API_KEY as a secret in the Render
+      # dashboard under this service's Environment tab.

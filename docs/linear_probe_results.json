@@ -1,0 +1,19 @@
+{
+  "training_method": "linear_probe_on_frozen_imagenet_features",
+  "grouped_by_lesion": true,
+  "accuracy": 54.96,
+  "balanced_accuracy": 53.69,
+  "macro_f1": 0.3791,
+  "melanoma_recall": 55.49,
+  "per_class_recall": {
+    "akiec": 43.18,
+    "bcc": 57.97,
+    "bkl": 51.96,
+    "df": 55.56,
+    "mel": 55.49,
+    "nv": 55.66,
+    "vasc": 56.0
+  },
+  "temperature": 0.9808,
+  "verified": "measured"
+}

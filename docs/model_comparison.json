@@ -1,0 +1,43 @@
+{
+    "_note": "Keys beginning with an underscore are metadata, not models. Each model entry carries a `verified` flag: 'self_reported' means the number was transcribed from a notebook run and cannot be reproduced from this repository, while 'measured' means it was written by `python -m derm.evaluate` against a checkpoint in models/. Treat self_reported numbers as claims, not results.",
+    "_provenance": {
+        "self_reported_entries_were_measured_on": "an image-wise split, which leaks 36.13% of test images (see docs/split_audit.json)",
+        "audit": "docs/split_audit.json",
+        "regenerate": "python -m derm.evaluate --checkpoint models/best_model.pth",
+        "measured_entries": "efficientnet_b3_linear_probe was produced by scripts/fit_head.py: the classifier head was fitted on frozen ImageNet features. The backbone was NOT fine-tuned, so it is not comparable with the self_reported EfficientNet_B3 row above, which claims an end-to-end fine-tune."
+    },
+    "SVM_baseline": {
+        "accuracy": 73.14,
+        "macro_f1": 0.35,
+        "melanoma_recall": 25.1,
+        "vasc_recall": 0.0,
+        "df_recall": 8.7,
+        "verified": "self_reported",
+        "grouped_by_lesion": false,
+        "source": "notebooks/02-svm-baseline.ipynb"
+    },
+    "EfficientNet_B3": {
+        "accuracy": 80.17,
+        "macro_f1": 0.72,
+        "melanoma_recall": 75.0,
+        "vasc_recall": 95.0,
+        "verified": "self_reported",
+        "grouped_by_lesion": false,
+        "source": "notebooks/03-efficientnet-training.ipynb"
+    },
+    "efficientnet_b3_linear_probe": {
+        "verified": "measured",
+        "training_method": "linear_probe_on_frozen_imagenet_features",
+        "accuracy": 54.96,
+        "balanced_accuracy": 53.69,
+        "macro_f1": 0.3791,
+        "melanoma_recall": 55.49,
+        "vasc_recall": 56.0,
+        "df_recall": 55.56,
+        "roc_auc_macro": 0.8384,
+        "ece": 0.0963,
+        "melanoma_safety_net_catch_rate": 59.15,
+        "grouped_by_lesion": true,
+        "test_images": 1523
+    }
+}

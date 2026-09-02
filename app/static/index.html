@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dermoscopic Lesion Analysis</title>
+<meta name="description" content="Explainable skin lesion classification with EfficientNet-B3, Grad-CAM, ABCD morphometry and automated severity grading.">
+<meta name="color-scheme" content="dark light">
+<link rel="stylesheet" href="styles.css">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%232dd4bf' stroke-width='2'><circle cx='11' cy='11' r='7'/><path d='m20 20-3.5-3.5'/></svg>">
+</head>
+<body>
+
+<a class="skip" href="#work">Skip to content</a>
+
+<!-- ═══════════════════════════════ ICON SPRITE ═══════════════════════════ -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="i-logo" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round">
+      <circle cx="10.5" cy="10.5" r="7.2"/><path d="M20.5 20.5 15.6 15.6"/>
+      <circle cx="10.5" cy="10.5" r="3.1" stroke-dasharray="2 2"/>
+    </symbol>
+    <symbol id="i-scan" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2"/>
+      <circle cx="12" cy="12" r="3.2"/>
+    </symbol>
+    <symbol id="i-layers" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+      <path d="m12 2 9 5-9 5-9-5 9-5Z"/><path d="m3 12 9 5 9-5"/><path d="m3 17 9 5 9-5"/>
+    </symbol>
+    <symbol id="i-trend" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/>
+    </symbol>
+    <symbol id="i-archive" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="3" y="4" width="18" height="5" rx="1.5"/><path d="M5 9v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V9"/><path d="M10 13h4"/>
+    </symbol>
+    <symbol id="i-chart" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M3 3v18h18"/><rect x="7" y="12" width="3" height="6"/><rect x="12" y="8" width="3" height="10"/><rect x="17" y="5" width="3" height="13"/>
+    </symbol>
+    <symbol id="i-book" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z"/>
+    </symbol>
+    <symbol id="i-upload" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 9 5-5 5 5"/><path d="M12 4v12"/>
+    </symbol>
+    <symbol id="i-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M20 6 9 17l-5-5"/>
+    </symbol>
+    <symbol id="i-alert" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M10.3 3.3 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.3a2 2 0 0 0-3.4 0Z"/><path d="M12 9v4"/><path d="M12 17h.01"/>
+    </symbol>
+    <symbol id="i-info" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="9.5"/><path d="M12 16v-5"/><path d="M12 8h.01"/>
+    </symbol>
+    <symbol id="i-x" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></symbol>
+    <symbol id="i-pdf" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v5h6"/><path d="M9 15h6M9 18h3"/>
+    </symbol>
+    <symbol id="i-copy" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+    </symbol>
+    <symbol id="i-code" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <path d="m9 18-6-6 6-6M15 6l6 6-6 6"/>
+    </symbol>
+    <symbol id="i-theme" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round">
+      <circle cx="12" cy="12" r="8.5"/><path d="M12 3.5v17" /><path d="M12 20.5a8.5 8.5 0 0 0 0-17" fill="currentColor"/>
+    </symbol>
+    <symbol id="i-refresh" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 3v6h-6"/>
+    </symbol>
+    <symbol id="i-split" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="m9 8-4 4 4 4M15 8l4 4-4 4"/>
+    </symbol>
+    <symbol id="i-trash" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M3 6h18M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
+    </symbol>
+    <symbol id="i-plus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></symbol>
+    <symbol id="i-clock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/>
+    </symbol>
+    <symbol id="i-eye" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/>
+    </symbol>
+  </defs>
+</svg>
+
+<div class="app">
+
+  <!-- ═════════════════════════════════ RAIL ════════════════════════════ -->
+  <nav class="rail" aria-label="Primary">
+    <div class="rail__brand">
+      <svg class="rail__logo" aria-hidden="true"><use href="#i-logo"/></svg>
+      <span class="rail__word">
+        <b>Lesion Analysis</b>
+        <span>Explainable AI</span>
+      </span>
+    </div>
+
+    <div class="rail__nav" role="tablist" aria-label="Sections">
+      <div class="rail__group t-cap">Workspace</div>
+      <button class="navitem" role="tab" data-view="analyze" aria-selected="true">
+        <svg aria-hidden="true"><use href="#i-scan"/></svg><span>Analyse</span>
+      </button>
+      <button class="navitem" role="tab" data-view="batch" aria-selected="false">
+        <svg aria-hidden="true"><use href="#i-layers"/></svg><span>Batch triage</span>
+      </button>
+      <button class="navitem" role="tab" data-view="compare" aria-selected="false">
+        <svg aria-hidden="true"><use href="#i-trend"/></svg><span>Track change</span>
+      </button>
+
+      <div class="rail__group t-cap">Records</div>
+      <button class="navitem" role="tab" data-view="history" aria-selected="false">
+        <svg aria-hidden="true"><use href="#i-archive"/></svg><span>Case history</span>
+        <span class="navitem__badge hidden" id="nav-case-count">0</span>
+      </button>
+      <button class="navitem" role="tab" data-view="metrics" aria-selected="false">
+        <svg aria-hidden="true"><use href="#i-chart"/></svg><span>Model metrics</span>
+      </button>
+      <button class="navitem" role="tab" data-view="about" aria-selected="false">
+        <svg aria-hidden="true"><use href="#i-book"/></svg><span>Method</span>
+      </button>
+    </div>
+
+    <div class="rail__foot">
+      <div class="statusblock" id="statusblock">
+        <div class="statusblock__row">
+          <span class="statusblock__dot"></span>
+          <span class="statusblock__label" id="status-label">Connecting…</span>
+        </div>
+        <div class="statusblock__meta" id="status-meta"></div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ══════════════════════════════ WORKSPACE ══════════════════════════ -->
+  <div class="workspace">
+    <header class="whead">
+      <div class="whead__titles">
+        <h1 id="view-title">Analyse</h1>
+        <p id="view-sub">Single dermoscopic image — classification, explanation and severity grade</p>
+      </div>
+      <div class="whead__actions">
+        <a class="btn btn--ghost btn--sm" href="/docs" target="_blank" rel="noopener">
+          <svg aria-hidden="true"><use href="#i-code"/></svg>API
+        </a>
+        <button class="iconbtn" id="theme-toggle" type="button" aria-label="Toggle colour theme" title="Toggle theme">
+          <svg aria-hidden="true"><use href="#i-theme"/></svg>
+        </button>
+      </div>
+    </header>
+
+    <main class="wbody" id="work">
+
+      <!-- consolidated notices: one compact strip, details on demand -->
+      <details class="notice notice--warn" id="notice-disclaimer">
+        <summary>
+          <svg class="notice__icon" aria-hidden="true"><use href="#i-alert"/></svg>
+          Research prototype — not a medical device. Read before use.
+        </summary>
+        <div id="disclaimer-text"></div>
+      </details>
+
+      <div class="notice notice--danger hidden" id="notice-weights">
+        <svg class="notice__icon" aria-hidden="true"><use href="#i-alert"/></svg>
+        <div class="notice__body">
+          <b>No trained weights loaded.</b>
+          <p>Class probabilities are the output of an untrained network and carry no diagnostic
+          meaning. Image quality checks, lesion segmentation, ABCD morphometry and change tracking
+          are unaffected. Add a checkpoint at <code>models/best_model.pth</code> or run
+          <code>python -m derm.train</code>.</p>
+          <div class="notice__act">
+            <button class="btn btn--sm" id="reload-model" type="button">
+              <svg aria-hidden="true"><use href="#i-refresh"/></svg>Reload model
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══════════════════════════ ANALYSE ═════════════════════════════ -->
+      <section class="view" id="view-analyze" role="tabpanel" aria-label="Analyse">
+
+        <!-- verdict spans the full width: it is the single most important output -->
+        <div id="result-top" class="stack hidden" style="margin-bottom:16px"></div>
+
+        <div class="studio">
+
+          <!-- left: image stage -->
+          <div class="stack">
+            <div id="dropzone" class="dropzone" tabindex="0" role="button"
+                 aria-label="Drop a dermoscopic image, or press Enter to browse files">
+              <input type="file" id="file-input" accept="image/*" hidden>
+              <svg class="dropzone__art" aria-hidden="true"><use href="#i-upload"/></svg>
+              <div class="dropzone__t">Drop a dermoscopic image</div>
+              <div class="dropzone__d">Click to browse, or paste from the clipboard. JPEG, PNG, WebP, BMP and TIFF up to 12 MB.</div>
+              <div class="dropzone__meta dropzone__kbd">
+                <kbd>⌘</kbd><kbd>V</kbd> to paste · <kbd>Enter</kbd> to analyse
+              </div>
+              <img id="preview" class="dropzone__fill hidden" alt="Selected image preview">
+            </div>
+
+            <!-- compact source bar, replaces the dropzone once a result exists -->
+            <div class="filebar hidden" id="filebar">
+              <img id="filebar-thumb" alt="">
+              <div class="filebar__t">
+                <b id="filebar-name">—</b>
+                <span class="t-small faint" id="filebar-meta"></span>
+              </div>
+              <button class="btn btn--ghost btn--sm" id="filebar-change" type="button">Change image</button>
+            </div>
+
+            <!-- image stage, revealed once a result exists -->
+            <div class="card stage hidden" id="stage">
+              <div class="card__head">
+                <h3>Visual explanation</h3>
+                <div class="card__tools">
+                  <div class="seg" id="stage-mode" role="tablist" aria-label="Viewer mode">
+                    <button class="seg__btn" role="tab" data-mode="single" aria-selected="true">Single</button>
+                    <button class="seg__btn" role="tab" data-mode="split" aria-selected="false">Compare</button>
+                  </div>
+                </div>
+              </div>
+              <div class="stage__frame" id="stage-frame">
+                <img id="img-under" class="is-under" alt="">
+                <img id="img-over" class="is-over" alt="Analysis visualisation">
+                <span class="split__tag split__tag--l hidden" id="tag-l">Original</span>
+                <span class="split__tag split__tag--r hidden" id="tag-r">Grad-CAM</span>
+                <div class="split hidden" id="split" role="slider" tabindex="0"
+                     aria-label="Comparison position" aria-valuemin="0" aria-valuemax="100" aria-valuenow="50">
+                  <div class="split__line" id="split-line">
+                    <span class="split__grip"><svg aria-hidden="true"><use href="#i-split"/></svg></span>
+                  </div>
+                </div>
+              </div>
+              <div class="stage__cap">
+                <div class="stage__views" id="stage-views" role="tablist" aria-label="Image views"></div>
+              </div>
+              <div class="card__foot">
+                <span id="stage-note"></span>
+                <span class="faint" id="stage-pre" style="display:block;margin-top:3px"></span>
+              </div>
+            </div>
+
+            <!-- attention alignment -->
+            <div class="card hidden" id="card-attention">
+              <div class="card__head">
+                <h3>Explanation reliability</h3>
+                <span class="t-cap">did the model look at the lesion?</span>
+              </div>
+              <div class="card__body card__body--flush">
+                <div class="mgrid" id="attention-metrics"></div>
+              </div>
+              <div class="card__foot" id="attention-note"></div>
+            </div>
+
+            <!-- narrative -->
+            <div class="card hidden" id="card-narrative">
+              <div class="card__head">
+                <h3>Clinical report</h3>
+                <div class="card__tools">
+                  <button class="btn btn--sm" id="btn-pdf" type="button">
+                    <svg aria-hidden="true"><use href="#i-pdf"/></svg>PDF
+                  </button>
+                  <button class="btn btn--ghost btn--sm" id="btn-copy" type="button">
+                    <svg aria-hidden="true"><use href="#i-copy"/></svg>Copy
+                  </button>
+                  <button class="btn btn--ghost btn--sm" id="btn-json" type="button">JSON</button>
+                </div>
+              </div>
+              <div class="card__body"><div class="nar" id="narrative"></div></div>
+            </div>
+          </div>
+
+          <!-- right: controls, then evidence -->
+          <div class="stack" id="rail-right">
+
+            <div class="card" id="card-run">
+              <div class="card__head">
+                <h3>Pipeline</h3>
+                <div class="card__tools">
+                  <button class="btn btn--ghost btn--sm hidden" id="btn-reset" type="button">Clear</button>
+                </div>
+              </div>
+              <div class="card__body stack--sm" style="display:flex;flex-direction:column;gap:2px">
+                <label class="tog"><input type="checkbox" id="o-hair" checked><span class="tog__track"></span><span class="tog__text">Hair removal</span></label>
+                <label class="tog"><input type="checkbox" id="o-color" checked><span class="tog__track"></span><span class="tog__text">Colour constancy</span></label>
+                <label class="tog"><input type="checkbox" id="o-vig" checked><span class="tog__track"></span><span class="tog__text">Crop lens vignette</span></label>
+                <label class="tog"><input type="checkbox" id="o-seg" checked><span class="tog__track"></span><span class="tog__text">Lesion segmentation</span></label>
+                <label class="tog"><input type="checkbox" id="o-morph" checked><span class="tog__track"></span><span class="tog__text">ABCD morphometry</span></label>
+                <label class="tog"><input type="checkbox" id="o-cam" checked><span class="tog__track"></span><span class="tog__text">Grad-CAM</span></label>
+                <label class="tog"><input type="checkbox" id="o-tta" checked><span class="tog__track"></span><span class="tog__text">Test-time augmentation</span></label>
+                <label class="tog"><input type="checkbox" id="o-mc" checked><span class="tog__track"></span><span class="tog__text">MC dropout</span></label>
+                <label class="tog"><input type="checkbox" id="o-persist" checked><span class="tog__track"></span><span class="tog__text">Save to history</span></label>
+
+                <div class="row" style="margin-top:10px;gap:10px">
+                  <div class="field" style="flex:1">
+                    <span class="field__label">CAM method</span>
+                    <select id="o-method">
+                      <option value="gradcam++" selected>Grad-CAM++</option>
+                      <option value="gradcam">Grad-CAM</option>
+                    </select>
+                  </div>
+                  <div class="field" style="flex:1">
+                    <span class="field__label">Colours</span>
+                    <select id="o-cmap">
+                      <option value="jet" selected>Jet</option>
+                      <option value="turbo">Turbo</option>
+                      <option value="inferno">Inferno</option>
+                      <option value="magma">Magma</option>
+                    </select>
+                  </div>
+                </div>
+
+                <button class="btn btn--primary btn--lg btn--block" id="btn-run" type="button" disabled
+                        style="margin-top:12px">
+                  <svg aria-hidden="true"><use href="#i-scan"/></svg>Analyse lesion
+                </button>
+                <p class="issue issue--critical hidden" id="run-error" role="alert" style="margin-top:10px"></p>
+              </div>
+            </div>
+
+            <div id="analyze-idle" class="empty">
+              <svg class="empty__art" aria-hidden="true"><use href="#i-eye"/></svg>
+              <h3>No analysis yet</h3>
+              <p>Results appear here: a graded severity tier, ranked diagnoses, a Grad-CAM
+              explanation, quantitative ABCD morphometry and an uncertainty estimate.</p>
+            </div>
+
+            <div id="analyze-busy" class="card hidden">
+              <div class="card__head"><h3>Running pipeline</h3></div>
+              <div class="card__body">
+                <div class="bar-ind" style="margin-bottom:12px"></div>
+                <div class="pipe" id="pipeline"></div>
+              </div>
+            </div>
+
+            <div id="analyze-out" class="stack hidden"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ═══════════════════════════ BATCH ══════════════════════════════ -->
+      <section class="view hidden" id="view-batch" role="tabpanel" aria-label="Batch triage">
+        <div class="grid g-2" style="align-items:start">
+          <div class="card">
+            <div class="card__head"><h3>Select images</h3>
+              <span class="t-cap" id="batch-count-cap"></span></div>
+            <div class="card__body">
+              <div id="batch-drop" class="dropzone dropzone--sm" tabindex="0" role="button"
+                   aria-label="Drop multiple dermoscopic images">
+                <input type="file" id="batch-input" accept="image/*" multiple hidden>
+                <svg class="dropzone__art" aria-hidden="true"><use href="#i-layers"/></svg>
+                <div class="dropzone__t" id="batch-label">Drop up to <span id="batch-limit">24</span> images</div>
+                <div class="dropzone__d">Each is scored and the set is returned in triage order.</div>
+              </div>
+              <div class="row row--between" style="margin-top:14px">
+                <label class="tog"><input type="checkbox" id="batch-persist" checked><span class="tog__track"></span><span class="tog__text">Save all to history</span></label>
+                <button class="btn btn--primary" id="batch-run" type="button" disabled>Analyse batch</button>
+              </div>
+              <div class="bar-ind hidden" id="batch-bar" style="margin-top:12px"></div>
+              <p class="issue issue--critical hidden" id="batch-error" role="alert" style="margin-top:10px"></p>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card__head"><h3>Why triage order matters</h3></div>
+            <div class="card__body">
+              <p class="t-body">A screening set is mostly benign. Ranking by severity tier puts the
+              cases that need a clinician first, so review time goes where the risk is. Melanoma-
+              suspicious cases surface even when melanoma is not the top-ranked class, because the
+              grading engine escalates on melanoma probability rather than on argmax alone.</p>
+            </div>
+          </div>
+        </div>
+
+        <div id="batch-out" class="stack hidden" style="margin-top:16px"></div>
+      </section>
+
+      <!-- ══════════════════════════ COMPARE ═════════════════════════════ -->
+      <section class="view hidden" id="view-compare" role="tabpanel" aria-label="Track change">
+        <div class="card">
+          <div class="card__head">
+            <h3>Two captures of the same lesion</h3>
+            <span class="t-cap">the "E" of ABCDE</span>
+          </div>
+          <div class="card__body">
+            <p class="t-body" style="margin-bottom:16px">Change over time is the strongest single
+            predictor of melanoma, and the one thing a single-image classifier structurally cannot
+            see. Absolute size is only meaningful if both photographs used the same magnification —
+            supply a field-of-view width for millimetre measurements.</p>
+
+            <div class="grid g-2">
+              <div class="stack--sm" style="display:flex;flex-direction:column;gap:10px">
+                <span class="t-cap">Baseline · earlier</span>
+                <div id="cmp-drop-a" class="dropzone dropzone--sm" tabindex="0" role="button" aria-label="Drop the earlier capture">
+                  <input type="file" id="cmp-in-a" accept="image/*" hidden>
+                  <svg class="dropzone__art" aria-hidden="true"><use href="#i-upload"/></svg>
+                  <div class="dropzone__t">Earlier capture</div>
+                  <img id="cmp-prev-a" class="dropzone__fill hidden" alt="Baseline preview">
+                </div>
+                <div class="field"><span class="field__label">Capture date</span><input type="date" id="cmp-date-a"></div>
+              </div>
+              <div class="stack--sm" style="display:flex;flex-direction:column;gap:10px">
+                <span class="t-cap">Follow-up · later</span>
+                <div id="cmp-drop-b" class="dropzone dropzone--sm" tabindex="0" role="button" aria-label="Drop the later capture">
+                  <input type="file" id="cmp-in-b" accept="image/*" hidden>
+                  <svg class="dropzone__art" aria-hidden="true"><use href="#i-upload"/></svg>
+                  <div class="dropzone__t">Later capture</div>
+                  <img id="cmp-prev-b" class="dropzone__fill hidden" alt="Follow-up preview">
+                </div>
+                <div class="field"><span class="field__label">Capture date</span><input type="date" id="cmp-date-b"></div>
+              </div>
+            </div>
+
+            <div class="row" style="margin-top:16px;align-items:flex-end">
+              <div class="field" style="flex:1;min-width:220px">
+                <span class="field__label">Field-of-view width (mm) — optional</span>
+                <input type="number" id="cmp-fov" min="1" max="200" step="0.5" placeholder="e.g. 20 for a typical dermatoscope aperture">
+                <span class="field__hint">Must be identical for both captures to be valid.</span>
+              </div>
+              <button class="btn btn--primary" id="cmp-run" type="button" disabled>Compare captures</button>
+            </div>
+            <p class="issue issue--critical hidden" id="cmp-error" role="alert" style="margin-top:10px"></p>
+          </div>
+        </div>
+
+        <div id="cmp-out" class="stack hidden" style="margin-top:16px"></div>
+      </section>
+
+      <!-- ══════════════════════════ HISTORY ═════════════════════════════ -->
+      <section class="view hidden" id="view-history" role="tabpanel" aria-label="Case history">
+        <div class="card" style="margin-bottom:16px">
+          <div class="card__body">
+            <div class="row row--between">
+              <div class="row">
+                <div class="field field--inline" style="min-width:150px">
+                  <span class="field__label">Severity tier</span>
+                  <select id="h-tier">
+                    <option value="">All tiers</option>
+                    <option value="CRITICAL">Critical</option>
+                    <option value="HIGH">High</option>
+                    <option value="MODERATE">Moderate</option>
+                    <option value="LOW">Low</option>
+                    <option value="INDETERMINATE">Indeterminate</option>
+                  </select>
+                </div>
+                <div class="field field--inline" style="min-width:180px">
+                  <span class="field__label">Predicted class</span>
+                  <select id="h-code"><option value="">All classes</option></select>
+                </div>
+                <label class="tog" style="margin-top:16px"><input type="checkbox" id="h-review"><span class="tog__track"></span><span class="tog__text">Flagged for review only</span></label>
+              </div>
+              <button class="btn btn--ghost btn--sm" id="h-refresh" type="button" style="margin-top:16px">
+                <svg aria-hidden="true"><use href="#i-refresh"/></svg>Refresh
+              </button>
+            </div>
+          </div>
+        </div>
+        <div class="grid g-4" id="h-stats" style="margin-bottom:16px"></div>
+        <div id="h-list"></div>
+      </section>
+
+      <!-- ══════════════════════════ METRICS ═════════════════════════════ -->
+      <section class="view hidden" id="view-metrics" role="tabpanel" aria-label="Model metrics">
+        <div id="metrics-out"></div>
+      </section>
+
+      <!-- ═══════════════════════════ METHOD ═════════════════════════════ -->
+      <section class="view hidden" id="view-about" role="tabpanel" aria-label="Method">
+        <div class="grid g-2" style="align-items:start">
+          <div class="card">
+            <div class="card__head"><h3>Pipeline</h3></div>
+            <div class="card__body prose">
+              <ol>
+                <li><strong>Quality assessment</strong> runs first, on the untouched upload:
+                resolution, focus by variance of the Laplacian, exposure, contrast, specular glare,
+                and a skin-chromaticity test that rejects images which are not photographs of skin.</li>
+                <li><strong>Vignette cropping</strong> removes the black lens barrel so it cannot be
+                mistaken for pigment.</li>
+                <li><strong>Restoration</strong> inpaints hair using a directional black-hat filter
+                with Telea inpainting, then normalises the illuminant with Shades-of-Gray. This
+                restored image drives geometry <em>only</em> — the classifier receives the
+                un-restored frame, because that is the distribution HAM10000 was trained on.</li>
+                <li><strong>Segmentation</strong> isolates the lesion via a lesion-enhanced Otsu
+                threshold, morphological cleanup and a centrality-weighted component choice, falling
+                back to a centred ellipse with reduced confidence when thresholding fails.</li>
+                <li><strong>ABCD morphometry</strong> measures asymmetry about the lesion's own
+                principal axes, border irregularity across eight sectors, the count of six
+                diagnostic colours, and approximated dermoscopic structures.</li>
+                <li><strong>Classification</strong> with EfficientNet-B3, averaged over dihedral
+                test-time augmentations.</li>
+                <li><strong>Uncertainty</strong> from predictive entropy, augmentation disagreement
+                and MC dropout, including the BALD mutual-information score.</li>
+                <li><strong>Grad-CAM / Grad-CAM++</strong> localises the evidence, and the map is
+                scored against the lesion mask so you can tell whether the network attended to the
+                lesion or to an artefact.</li>
+                <li><strong>Severity grading</strong> fuses all of the above into a 0–100 score with
+                hard safety overrides.</li>
+              </ol>
+            </div>
+          </div>
+
+          <div class="stack">
+            <div class="card">
+              <div class="card__head"><h3>Severity grading</h3></div>
+              <div class="card__body prose">
+                <p>The weighted score combines neural risk (52%), ABCD morphometry (24%),
+                uncertainty (16%) and image quality (8%). Overrides then apply:</p>
+                <ul>
+                  <li>Melanoma as top class forces at least <strong>HIGH</strong>.</li>
+                  <li>Melanoma probability above 25% forces <strong>HIGH</strong> even when it is not
+                  the top class.</li>
+                  <li>A total dermoscopy score above 5.45 forces <strong>HIGH</strong>.</li>
+                  <li>Confidence below 50% forces at least <strong>MODERATE</strong> plus a review flag.</li>
+                </ul>
+                <p>Overrides are deliberately one-directional — they can raise a tier but never lower
+                one — because the cost of a missed melanoma is not symmetric with the cost of an
+                unnecessary referral.</p>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="card__head"><h3>Known limitations</h3></div>
+              <div class="card__body prose">
+                <ul>
+                  <li>HAM10000 is dominated by fair-skinned European and Australian populations.
+                  Performance on darker skin is uncharacterised and likely worse.</li>
+                  <li>Only seven categories are modelled. Anything else — squamous cell carcinoma,
+                  amelanotic melanoma, infections, inflammatory dermatoses — is forced into the
+                  nearest of the seven and will be wrong.</li>
+                  <li>The <em>D</em> component of ABCD is approximated with classical texture
+                  filters rather than expert annotation. Treat it as a weak signal.</li>
+                  <li>Absolute lesion size cannot be recovered from a photograph without a scale
+                  reference.</li>
+                  <li>The 80.17% figure from the original notebook came from an image-wise split.
+                  HAM10000 holds 10,015 images of only 7,470 lesions, so that split leaks
+                  near-duplicate photographs of the same lesion across train and test. The training
+                  code here groups by <code>lesion_id</code> instead — expect a lower but honest
+                  number.</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card" style="margin-top:16px">
+          <div class="card__head"><h3>Diagnostic classes</h3>
+            <span class="t-cap">HAM10000 taxonomy</span></div>
+          <div class="card__body card__body--flush"><div class="tw" id="about-classes"></div></div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+</div>
+
+<div class="toasts" id="toasts" aria-live="polite"></div>
+
+<div id="modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+  <div class="modal__bd" data-close></div>
+  <div class="modal__p">
+    <div class="modal__h">
+      <h3 id="modal-title">Case</h3>
+      <button class="iconbtn" type="button" data-close aria-label="Close dialog" style="margin-left:auto">
+        <svg aria-hidden="true"><use href="#i-x"/></svg>
+      </button>
+    </div>
+    <div class="modal__b" id="modal-body"></div>
+  </div>
+</div>
+
+<script src="app.js?v=20260806-current-upload"></script>
+</body>
+</html>

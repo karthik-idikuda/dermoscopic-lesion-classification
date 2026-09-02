@@ -1,0 +1,211 @@
+{
+  "source": "/Users/karthik/Downloads/dermoscopic-lesion-classification-main/data/ham10000/HAM10000_metadata.csv",
+  "seed": 42,
+  "reproducible": true,
+  "dataset": {
+    "images": 10015,
+    "lesions": 7470,
+    "repeat_images": 2545,
+    "repeat_images_pct": 25.41,
+    "lesions_with_multiple_images": 1956,
+    "max_images_per_lesion": 6,
+    "class_counts": {
+      "akiec": 327,
+      "bcc": 514,
+      "bkl": 1099,
+      "df": 115,
+      "mel": 1113,
+      "nv": 6705,
+      "vasc": 142
+    }
+  },
+  "image_wise_split": {
+    "description": "notebook 03: train_test_split(test_size=0.3, random_state=42, stratify=dx) then 50/50",
+    "sizes": {
+      "train": 7010,
+      "val": 1502,
+      "test": 1503
+    },
+    "val": {
+      "images": 1502,
+      "lesions": 1430,
+      "leaked_images": 523,
+      "leaked_pct": 34.82,
+      "by_class": {
+        "akiec": {
+          "images": 49,
+          "leaked": 17,
+          "leaked_pct": 34.69
+        },
+        "bcc": {
+          "images": 77,
+          "leaked": 35,
+          "leaked_pct": 45.45
+        },
+        "bkl": {
+          "images": 165,
+          "leaked": 77,
+          "leaked_pct": 46.67
+        },
+        "df": {
+          "images": 17,
+          "leaked": 9,
+          "leaked_pct": 52.94
+        },
+        "mel": {
+          "images": 167,
+          "leaked": 111,
+          "leaked_pct": 66.47
+        },
+        "nv": {
+          "images": 1006,
+          "leaked": 266,
+          "leaked_pct": 26.44
+        },
+        "vasc": {
+          "images": 21,
+          "leaked": 8,
+          "leaked_pct": 38.1
+        }
+      }
+    },
+    "test": {
+      "images": 1503,
+      "lesions": 1429,
+      "leaked_images": 543,
+      "leaked_pct": 36.13,
+      "by_class": {
+        "akiec": {
+          "images": 49,
+          "leaked": 18,
+          "leaked_pct": 36.73
+        },
+        "bcc": {
+          "images": 77,
+          "leaked": 54,
+          "leaked_pct": 70.13
+        },
+        "bkl": {
+          "images": 165,
+          "leaked": 83,
+          "leaked_pct": 50.3
+        },
+        "df": {
+          "images": 17,
+          "leaked": 7,
+          "leaked_pct": 41.18
+        },
+        "mel": {
+          "images": 167,
+          "leaked": 106,
+          "leaked_pct": 63.47
+        },
+        "nv": {
+          "images": 1006,
+          "leaked": 268,
+          "leaked_pct": 26.64
+        },
+        "vasc": {
+          "images": 22,
+          "leaked": 7,
+          "leaked_pct": 31.82
+        }
+      }
+    }
+  },
+  "lesion_grouped_split": {
+    "description": "derm.data.make_splits(group_by_lesion=True)",
+    "sizes": {
+      "train": 7010,
+      "val": 1482,
+      "test": 1523
+    },
+    "val": {
+      "images": 1482,
+      "lesions": 1120,
+      "leaked_images": 0,
+      "leaked_pct": 0.0,
+      "by_class": {
+        "akiec": {
+          "images": 51,
+          "leaked": 0,
+          "leaked_pct": 0.0
+        },
+        "bcc": {
+          "images": 71,
+          "leaked": 0,
+          "leaked_pct": 0.0
+        },
+        "bkl": {
+          "images": 161,
+          "leaked": 0,
+          "leaked_pct": 0.0
+        },
+        "df": {
+          "images": 20,
+          "leaked": 0,
+          "leaked_pct": 0.0
+        },
+        "mel": {
+          "images": 163,
+          "leaked": 0,
+          "leaked_pct": 0.0
+        },
+        "nv": {
+          "images": 998,
+          "leaked": 0,
+          "leaked_pct": 0.0
+        },
+        "vasc": {
+          "images": 18,
+          "leaked": 0,
+          "leaked_pct": 0.0
+        }
+      }
+    },
+    "test": {
+      "images": 1523,
+      "lesions": 1120,
+      "leaked_images": 0,
+      "leaked_pct": 0.0,
+      "by_class": {
+        "akiec": {
+          "images": 44,
+          "leaked": 0,
+          "leaked_pct": 0.0
+        },
+        "bcc": {
+          "images": 69,
+          "leaked": 0,
+          "leaked_pct": 0.0
+        },
+        "bkl": {
+          "images": 179,
+          "leaked": 0,
+          "leaked_pct": 0.0
+        },
+        "df": {
+          "images": 18,
+          "leaked": 0,
+          "leaked_pct": 0.0
+        },
+        "mel": {
+          "images": 164,
+          "leaked": 0,
+          "leaked_pct": 0.0
+        },
+        "nv": {
+          "images": 1024,
+          "leaked": 0,
+          "leaked_pct": 0.0
+        },
+        "vasc": {
+          "images": 25,
+          "leaked": 0,
+          "leaked_pct": 0.0
+        }
+      }
+    }
+  },
+  "verdict": "The image-wise split leaks 36.13% of test images, so any accuracy measured on it is optimistically biased. The lesion-grouped split leaks 0.0%."
+}

@@ -1,0 +1,17 @@
+data/
+.git/
+.gitignore
+.pytest_cache/
+.vscode/
+.venv/
+venv/
+env/
+__pycache__/
+**/__pycache__/
+*.pyc
+samples/
+docs/features_b3.npz
+docs/test_logits.npz
+tests/
+scripts/
+*.md
