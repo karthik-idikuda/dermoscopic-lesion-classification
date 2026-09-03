@@ -65,23 +65,30 @@ class GradCAM:
         self._gradients: torch.Tensor | None = None
 
     # ------------------------------------------------------------------ hooks
-    def _forward_hook(self, _module, _inputs, output) -> None:
-        self._activations = output
+    def _forward_hook(self, _module, _inputs, output):
+        """Detach the target activation and make it the graph's only grad leaf.
 
-    def _backward_hook(self, _module, _grad_input, grad_output) -> None:
-        self._gradients = grad_output[0]
+        Grad-CAM needs d(logit)/d(activation) at *this* layer and nothing else,
+        so there is no reason to retain activations for the whole network. By
+        detaching here and re-marking the tensor as requiring grad, autograd
+        builds a graph only from this layer forward - a few layers instead of
+        the full ~130 - which cuts the retained-activation memory that would
+        otherwise dominate peak usage on a small host.
+
+        Returning a tensor replaces the module's output for the rest of the
+        forward pass, which is the documented behaviour of a forward hook.
+        """
+        detached = output.detach().requires_grad_(True)
+        self._activations = detached
+        return detached
 
     @contextmanager
     def _hooked(self) -> Iterator[None]:
-        handles = [
-            self.target_layer.register_forward_hook(self._forward_hook),
-            self.target_layer.register_full_backward_hook(self._backward_hook),
-        ]
+        handle = self.target_layer.register_forward_hook(self._forward_hook)
         try:
             yield
         finally:
-            for handle in handles:
-                handle.remove()
+            handle.remove()
             self._activations = None
             self._gradients = None
 
@@ -112,23 +119,33 @@ class GradCAM:
         # lift that. inference_mode(False) re-enters normal mode so the clone
         # below is a regular tensor that can carry a graph.
         with self._hooked(), torch.inference_mode(False), torch.enable_grad():
-            inputs = batch.detach().clone().requires_grad_(True)
+            # The input deliberately does NOT require grad. Together with frozen
+            # model parameters that means no graph is built for the layers
+            # *before* the target layer; the forward hook introduces the only
+            # grad-requiring leaf, so autograd retains just the tail of the
+            # network. Peak memory drops accordingly.
+            inputs = batch.detach().clone()
             logits = self.model(inputs)
 
             if class_index is None:
                 class_index = int(logits.argmax(dim=1).item())
 
-            self.model.zero_grad(set_to_none=True)
-            logits[0, class_index].backward(retain_graph=False)
-
-            if self._activations is None or self._gradients is None:
+            if self._activations is None:
                 raise RuntimeError(
                     "Grad-CAM captured no activations. The target layer is "
                     "probably not part of the forward graph."
                 )
 
+            logits[0, class_index].backward(retain_graph=False)
+
+            if self._activations.grad is None:
+                raise RuntimeError(
+                    "Grad-CAM captured no gradient at the target layer. The "
+                    "layer's output is probably not connected to the logits."
+                )
+
             activations = self._activations[0].detach()  # (C, h, w)
-            gradients = self._gradients[0].detach()  # (C, h, w)
+            gradients = self._activations.grad[0].detach()  # (C, h, w)
             detached_logits = logits.detach()
 
         weights = (
