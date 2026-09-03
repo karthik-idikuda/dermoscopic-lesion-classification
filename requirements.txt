@@ -31,6 +31,10 @@ fastapi>=0.110
 uvicorn[standard]>=0.27
 python-multipart>=0.0.9
 pydantic>=2.5
+# Process manager for deployment. Used to recycle the worker after a set number
+# of requests, which bounds memory growth on small hosts (torch does not return
+# all transient allocations to the OS). Not needed for local `uvicorn` runs.
+gunicorn>=21.2
 
 # --- reporting ---
 reportlab>=4.0

@@ -38,4 +38,17 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
 
 # Render (and most PaaS Docker runtimes) inject $PORT; default to 8000 for
 # local `docker run`.
-CMD ["sh", "-c", "uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}"]
+#
+# Served under gunicorn rather than bare uvicorn for two deployment-specific
+# reasons on a small host:
+#   --workers 1          one model in memory, not N copies.
+#   --max-requests       recycles the worker periodically. torch does not return
+#                        every transient allocation to the OS, so RSS creeps up
+#                        over many inferences; recycling resets it to the
+#                        baseline instead of letting it reach the memory cap and
+#                        get the container OOM-killed (which surfaces as a 502).
+#                        The jitter avoids a predictable stall pattern.
+#   --timeout 300        a fractional-CPU host is slow; the default 30s would
+#                        kill a legitimate in-flight analysis.
+#   --preload is deliberately NOT used: the model loads lazily on first request.
+CMD ["sh", "-c", "gunicorn app.main:app -k uvicorn.workers.UvicornWorker --workers 1 --max-requests 25 --max-requests-jitter 5 --timeout 300 --graceful-timeout 30 --bind 0.0.0.0:${PORT:-8000} --access-logfile - --error-logfile -"]

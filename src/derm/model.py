@@ -390,6 +390,15 @@ def create_bundle(
 
     model.to(target_device).eval()
 
+    # Serving is inference-only, so no parameter ever needs a gradient. Freezing
+    # them means the Grad-CAM backward pass does not allocate a .grad buffer for
+    # all ~12M parameters (~48MB at fp32) and does not spend CPU computing them.
+    # Grad-CAM is unaffected: it differentiates the target logit with respect to
+    # the *activations*, and GradCAM.__call__ marks its cloned input tensor
+    # requires_grad_(True), so the activation graph is still built.
+    for parameter in model.parameters():
+        parameter.requires_grad_(False)
+
     class_codes = tuple(metadata.get("class_codes") or CLASS_CODES)
     if len(class_codes) != config.num_classes:
         warnings.append(
