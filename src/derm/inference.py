@@ -43,6 +43,13 @@ import os as _os
 
 DISPLAY_SIZE = int(_os.environ.get("DERM_DISPLAY_SIZE", "512"))
 
+# Longest side the pipeline will actually process. The classifier resizes to
+# 224px regardless, and the segmentation/morphometry stages are accurate well
+# below original resolution, so processing a full 12MP upload only multiplies the
+# size of every intermediate copy. 1600px keeps ample detail for the geometric
+# measurements while bounding peak memory; lower it (e.g. 1024) on a small host.
+MAX_INPUT_DIM = int(_os.environ.get("DERM_MAX_INPUT_DIM", "1600"))
+
 
 @dataclass
 class AnalysisOptions:
@@ -195,14 +202,25 @@ def analyze_image(
 
     # -- 1. decode and assess quality -------------------------------------- #
     stage = time.perf_counter()
-    image = preprocessing.load_image(data)
+    # Record what the user actually submitted, read from the header, so the
+    # report describes their file rather than our downscaled working copy.
+    source_width, source_height = preprocessing.probe_size(data)
+    # decode_hint lets a large JPEG be decoded straight to roughly the working
+    # size instead of being fully materialised and then thrown away.
+    image = preprocessing.load_image(data, decode_hint=MAX_INPUT_DIM)
+    steps: list[str] = []
+    image, downscaled = preprocessing.limit_dimension(image, MAX_INPUT_DIM)
+    if downscaled or (image.width, image.height) != (source_width, source_height):
+        steps.append(
+            f"downscaled {source_width}x{source_height} to "
+            f"{image.width}x{image.height} for analysis"
+        )
     base = preprocessing.to_array(image)
     quality_report = quality.assess(base)
     stage = mark("decode_and_quality", stage)
 
     # -- 2. establish the shared analysis frame ---------------------------- #
     frame = base
-    steps: list[str] = []
     if options.vignette_crop and preprocessing.detect_vignette(frame) > 0.35:
         cropped = preprocessing.crop_vignette(frame)
         if cropped.shape != frame.shape:
@@ -358,8 +376,8 @@ def analyze_image(
             "filename": filename,
             "sha256": hashlib.sha256(data).hexdigest(),
             "bytes": len(data),
-            "width": image.width,
-            "height": image.height,
+            "width": source_width,
+            "height": source_height,
         },
         filename=filename,
     )

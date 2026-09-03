@@ -10,6 +10,7 @@ neural classification is meaningless.
 
 from __future__ import annotations
 
+import gc
 import logging
 import threading
 from dataclasses import dataclass, field, replace
@@ -367,6 +368,12 @@ def create_bundle(
             temperature = float(metadata.get("temperature", temperature))
             used_path = path
             logger.info("Loaded checkpoint from %s", path)
+            # load_state_dict copies into the model, so the loaded tensors are
+            # now a redundant second copy of every weight (~48MB here). Drop it
+            # before the process settles into its steady-state footprint.
+            state = None
+            del missing, unexpected
+            gc.collect()
         except Exception as exc:  # noqa: BLE001 - a bad file must not kill startup
             warnings.append(f"Failed to load checkpoint {path.name}: {exc}")
             logger.exception("Checkpoint load failed")

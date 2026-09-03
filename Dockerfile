@@ -29,7 +29,12 @@ COPY models ./models
 # actually has - oversubscription just adds context-switch overhead here.
 ENV PYTHONUNBUFFERED=1 \
     OMP_NUM_THREADS=1 \
-    MKL_NUM_THREADS=1
+    MKL_NUM_THREADS=1 \
+    # glibc allocates up to 8 arenas per core and each retains its own free
+    # lists, which inflates RSS well beyond live data for a threaded process
+    # like this one. Capping the arena count is a standard fix and pairs with
+    # the malloc_trim() call the app makes after each request.
+    MALLOC_ARENA_MAX=2
 
 EXPOSE 8000
 

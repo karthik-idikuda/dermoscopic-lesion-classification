@@ -22,6 +22,15 @@ services:
       # Trim rendered-overlay buffers on the 512MB free tier.
       - key: DERM_DISPLAY_SIZE
         value: "384"
+      # Cap the resolution the pipeline works at. Large JPEGs are decoded
+      # straight to about this size, so a 12MP phone photo never materialises
+      # as a ~36MB array with a dozen intermediate copies. The classifier sees
+      # 224px regardless; this only bounds the geometric stages.
+      - key: DERM_MAX_INPUT_DIM
+        value: "1024"
+      # Bound glibc's per-arena free-list growth (see Dockerfile).
+      - key: MALLOC_ARENA_MAX
+        value: "2"
       # Single-threaded torch: a fractional CPU has nothing to gain from more
       # threads, and extra threads each carry stack + arena overhead.
       - key: OMP_NUM_THREADS

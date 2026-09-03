@@ -25,16 +25,26 @@ from PIL import Image, ImageOps
 # --------------------------------------------------------------------------- #
 
 
-def load_image(data: bytes) -> Image.Image:
+def load_image(data: bytes, *, decode_hint: int | None = None) -> Image.Image:
     """Decode uploaded bytes into an upright RGB :class:`PIL.Image.Image`.
 
     EXIF orientation is applied so phone photographs are not silently rotated,
     and any alpha channel is flattened onto white.
+
+    ``decode_hint`` is the longest side the caller intends to work at. For JPEG
+    input Pillow can then decode straight from the DCT coefficients at 1/2, 1/4
+    or 1/8 scale, so a 12MP upload never has to be materialised as a ~36MB array
+    just to be thrown away by a later resize. It is a hint, not a guarantee: the
+    result is the smallest available scale that is still >= the hint, and formats
+    without scaled decoding (PNG, BMP, ...) ignore it.
     """
     if not data:
         raise ValueError("Empty image payload.")
     try:
         image = Image.open(io.BytesIO(data))
+        if decode_hint and decode_hint > 0:
+            # draft() must be called before load() to affect decoding.
+            image.draft("RGB", (decode_hint, decode_hint))
         image.load()
     except Exception as exc:  # noqa: BLE001 - surface a clean API error
         raise ValueError(f"Unsupported or corrupt image file: {exc}") from exc
@@ -71,6 +81,51 @@ def encode_png(array: np.ndarray, *, max_size: int = 512) -> str:
     image.save(buffer, format="PNG", optimize=True)
     payload = base64.b64encode(buffer.getvalue()).decode("ascii")
     return f"data:image/png;base64,{payload}"
+
+
+def probe_size(data: bytes) -> tuple[int, int]:
+    """Return ``(width, height)`` of encoded image bytes without decoding them.
+
+    ``Image.open`` only reads the header, so this is cheap and - unlike checking
+    ``.size`` after a scaled/draft decode - always reports the dimensions of the
+    file the user actually submitted.
+    """
+    if not data:
+        raise ValueError("Empty image payload.")
+    try:
+        with Image.open(io.BytesIO(data)) as probe:
+            width, height = probe.size
+            # EXIF orientation 5-8 swap the visual axes, matching what
+            # exif_transpose() will produce during the real decode.
+            orientation = (probe.getexif() or {}).get(274)
+        if orientation in {5, 6, 7, 8}:
+            width, height = height, width
+        return width, height
+    except ValueError:
+        raise
+    except Exception as exc:  # noqa: BLE001 - surface a clean API error
+        raise ValueError(f"Unsupported or corrupt image file: {exc}") from exc
+
+
+def limit_dimension(image: Image.Image, max_dim: int) -> tuple[Image.Image, bool]:
+    """Downscale so the longest side is at most ``max_dim``. No-op if smaller.
+
+    Serving a full-resolution phone photo through the pipeline is pure waste and
+    a real memory hazard: the classifier sees 224px, and the geometric stages are
+    accurate well below the original size, but every intermediate stage holds its
+    own copy of the array. A 12MP frame is ~36MB per copy, and the pipeline keeps
+    roughly a dozen alive at once, which is enough to exhaust a small container.
+
+    Returns the (possibly unchanged) image plus whether it was resized, so the
+    caller can record the step and still report the original dimensions.
+    """
+    width, height = image.size
+    longest = max(width, height)
+    if longest <= max_dim:
+        return image, False
+    scale = max_dim / float(longest)
+    new_size = (max(1, round(width * scale)), max(1, round(height * scale)))
+    return image.resize(new_size, Image.LANCZOS), True
 
 
 def center_square_crop(array: np.ndarray) -> np.ndarray:
@@ -300,8 +355,10 @@ __all__ = [
     "detect_hair",
     "detect_vignette",
     "encode_png",
+    "limit_dimension",
     "load_image",
     "preprocess",
+    "probe_size",
     "remove_hair",
     "shades_of_gray",
     "to_array",
