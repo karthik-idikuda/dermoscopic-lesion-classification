@@ -19,15 +19,18 @@ services:
         value: "*"
       - key: PYTHONUNBUFFERED
         value: "1"
-      # Trim rendered-overlay buffers on the 512MB free tier.
+      # Rendered-overlay resolution. Kept small on the 512MB free tier.
       - key: DERM_DISPLAY_SIZE
-        value: "384"
-      # Cap the resolution the pipeline works at. Large JPEGs are decoded
-      # straight to about this size, so a 12MP phone photo never materialises
-      # as a ~36MB array with a dozen intermediate copies. The classifier sees
-      # 224px regardless; this only bounds the geometric stages.
+        value: "256"
+      # Cap the resolution the pipeline works at. The measured headroom on the
+      # free tier is only ~150MB above the ~360MB model floor, and every
+      # geometric stage (hair removal, colour constancy, segmentation, ABCD)
+      # allocates full-working-size arrays, so peak scales with this number.
+      # 512 keeps the worst-case 12MP-upload peak comfortably under the cap and
+      # loses nothing meaningful: HAM10000 is natively ~600x450 and the
+      # classifier always resizes to 224px. Raise this on a larger instance.
       - key: DERM_MAX_INPUT_DIM
-        value: "1024"
+        value: "512"
       # Bound glibc's per-arena free-list growth (see Dockerfile).
       - key: MALLOC_ARENA_MAX
         value: "2"

@@ -41,14 +41,32 @@ from .model import ModelBundle, get_bundle, resolve_gradcam_layer
 # a small host to trim peak memory with only a minor drop in overlay detail.
 import os as _os
 
-DISPLAY_SIZE = int(_os.environ.get("DERM_DISPLAY_SIZE", "512"))
+
+def _env_int(name: str, default: int) -> int:
+    """Read a positive int from the environment, tolerating unset/blank/garbage.
+
+    A platform can pass an env var through as an empty string, which int() would
+    reject with a ValueError at import time and take the whole app down. Fall
+    back to the default in that case rather than crash.
+    """
+    raw = (_os.environ.get(name) or "").strip()
+    if not raw:
+        return default
+    try:
+        value = int(raw)
+    except ValueError:
+        return default
+    return value if value > 0 else default
+
+
+DISPLAY_SIZE = _env_int("DERM_DISPLAY_SIZE", 512)
 
 # Longest side the pipeline will actually process. The classifier resizes to
 # 224px regardless, and the segmentation/morphometry stages are accurate well
 # below original resolution, so processing a full 12MP upload only multiplies the
 # size of every intermediate copy. 1600px keeps ample detail for the geometric
 # measurements while bounding peak memory; lower it (e.g. 1024) on a small host.
-MAX_INPUT_DIM = int(_os.environ.get("DERM_MAX_INPUT_DIM", "1600"))
+MAX_INPUT_DIM = _env_int("DERM_MAX_INPUT_DIM", 1600)
 
 
 @dataclass
