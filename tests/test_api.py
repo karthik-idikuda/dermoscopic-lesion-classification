@@ -312,8 +312,11 @@ class TestAPI:
         response = client.get("/api/health")
         assert response.status_code == 200
         body = response.json()
-        assert body["model_loaded"] is True
-        # No checkpoint in the test environment, so the service reports degraded.
+        # The health check is a cheap liveness probe and does not force the
+        # model to load (so a memory-constrained host is not OOM-killed during
+        # the probe). model_loaded therefore reflects whether some earlier
+        # request already triggered the lazy load - either state is valid here.
+        assert "model_loaded" in body
         assert body["status"] in {"ok", "degraded"}
 
     def test_meta(self, client):

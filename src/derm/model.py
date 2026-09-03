@@ -425,6 +425,16 @@ def get_bundle(*, reload: bool = False, **kwargs) -> ModelBundle:
     return _BUNDLE
 
 
+def bundle_loaded() -> bool:
+    """Whether the shared bundle has already been constructed.
+
+    Lets a liveness probe report readiness without *forcing* the heavy model
+    load, which matters on memory-constrained hosts where eagerly loading torch
+    plus the checkpoint during a health check can OOM-kill the container.
+    """
+    return _BUNDLE is not None
+
+
 __all__ = [
     "ModelBundle",
     "WeightsStatus",
@@ -432,6 +442,7 @@ __all__ = [
     "build_model",
     "build_train_transform",
     "create_bundle",
+    "bundle_loaded",
     "denormalize",
     "find_module",
     "get_bundle",

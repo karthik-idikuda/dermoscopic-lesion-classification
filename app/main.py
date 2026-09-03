@@ -59,7 +59,7 @@ from derm.config import (  # noqa: E402
     SETTINGS,
 )
 from derm.inference import AnalysisOptions, analyze_image  # noqa: E402
-from derm.model import get_bundle  # noqa: E402
+from derm.model import bundle_loaded, get_bundle  # noqa: E402
 from derm.severity import TIER_GUIDANCE  # noqa: E402
 
 from .schemas import AnalyzeOptions, CompareRequest, NotesUpdate  # noqa: E402
@@ -87,19 +87,34 @@ API_KEY = os.environ.get("DERM_API_KEY")
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """Warm the model at startup so the first request is not slow."""
-    try:
-        bundle = get_bundle()
-        logger.info(
-            "Model ready: %s on %s (weights: %s)",
-            bundle.config.architecture,
-            bundle.device,
-            bundle.weights_status,
-        )
-        for warning in bundle.warnings:
-            logger.warning(warning)
-    except Exception:  # noqa: BLE001 - keep serving the UI even if the model fails
-        logger.exception("Model initialisation failed; /api/analyze will error.")
+    """Application startup.
+
+    The model is *not* warmed here. Eagerly importing torch and loading the
+    checkpoint at boot can exceed the memory ceiling on small hosts (e.g. a
+    512MB free-tier container), which gets the process OOM-killed before it can
+    answer a single request - the classic cause of a platform returning 502.
+
+    Instead the model loads lazily on the first request that actually needs it
+    (``/api/analyze``). The liveness probe at ``/api/health`` stays cheap and
+    does not trigger the load, so the platform sees a healthy container quickly
+    and keeps it running. Set ``DERM_EAGER_LOAD=1`` to restore warm-at-boot
+    behaviour on a host with enough memory.
+    """
+    if os.environ.get("DERM_EAGER_LOAD") == "1":
+        try:
+            bundle = get_bundle()
+            logger.info(
+                "Model ready: %s on %s (weights: %s)",
+                bundle.config.architecture,
+                bundle.device,
+                bundle.weights_status,
+            )
+            for warning in bundle.warnings:
+                logger.warning(warning)
+        except Exception:  # noqa: BLE001 - keep serving the UI even if the model fails
+            logger.exception("Model initialisation failed; /api/analyze will error.")
+    else:
+        logger.info("Lazy model loading: the checkpoint loads on the first analysis request.")
 
     if not API_KEY:
         logger.warning(
@@ -207,6 +222,23 @@ async def value_error_handler(_request: Request, exc: ValueError) -> JSONRespons
 
 @app.get("/api/health", tags=["meta"])
 async def health() -> dict[str, Any]:
+    """Cheap liveness probe.
+
+    Deliberately does not call ``get_bundle()``: the health check must never be
+    what triggers the heavy model load, or a memory-constrained host can be
+    OOM-killed mid-probe and never come up. Once the model has been loaded by a
+    real request, this reports its full status; before then it reports a healthy
+    process with the model not yet loaded.
+    """
+    if not bundle_loaded():
+        return {
+            "status": "ok",
+            "version": __version__,
+            "model_loaded": False,
+            "weights_status": "not_loaded",
+            "device": "pending",
+            "warnings": ["Model loads lazily on the first analysis request."],
+        }
     try:
         bundle = get_bundle()
     except Exception as exc:  # noqa: BLE001
