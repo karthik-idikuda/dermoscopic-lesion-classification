@@ -35,7 +35,13 @@ from . import uncertainty as uncertainty_module
 from .config import LESION_CLASSES, MEDICAL_DISCLAIMER, SETTINGS
 from .model import ModelBundle, get_bundle, resolve_gradcam_layer
 
-DISPLAY_SIZE = 512
+# Rendered-overlay resolution. Overridable so a memory-constrained deployment
+# can shrink the transient RGB/PNG buffers (a 512px frame is ~0.75MB per copy
+# and several are held at once during rendering). Set DERM_DISPLAY_SIZE=384 on
+# a small host to trim peak memory with only a minor drop in overlay detail.
+import os as _os
+
+DISPLAY_SIZE = int(_os.environ.get("DERM_DISPLAY_SIZE", "512"))
 
 
 @dataclass

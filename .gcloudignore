@@ -1,0 +1,26 @@
+# Keep the Cloud Build upload small and the image lean. The trained checkpoint
+# (models/best_model.pth) is intentionally NOT ignored - the app needs it to
+# serve real predictions.
+
+.git/
+.gitignore
+.pytest_cache/
+.vscode/
+.venv/
+venv/
+env/
+__pycache__/
+**/__pycache__/
+*.pyc
+
+# The 195MB HAM10000 image set and local case DB are not needed at runtime -
+# inference does not read the training images, and the SQLite store is created
+# fresh on first write.
+data/
+
+# Regenerable / dev-only
+tests/
+scripts/
+samples/
+docs/features_b3.npz
+docs/test_logits.npz

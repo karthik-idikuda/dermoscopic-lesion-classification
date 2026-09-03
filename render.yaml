@@ -19,6 +19,15 @@ services:
         value: "*"
       - key: PYTHONUNBUFFERED
         value: "1"
+      # Trim rendered-overlay buffers on the 512MB free tier.
+      - key: DERM_DISPLAY_SIZE
+        value: "384"
+      # Single-threaded torch: a fractional CPU has nothing to gain from more
+      # threads, and extra threads each carry stack + arena overhead.
+      - key: OMP_NUM_THREADS
+        value: "1"
+      - key: MKL_NUM_THREADS
+        value: "1"
       # Unset = unauthenticated (matches the current app configuration).
       # To require a key, add DERM_API_KEY as a secret in the Render
       # dashboard under this service's Environment tab.

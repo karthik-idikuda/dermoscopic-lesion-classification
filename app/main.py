@@ -67,6 +67,34 @@ from .schemas import AnalyzeOptions, CompareRequest, NotesUpdate  # noqa: E402
 logger = logging.getLogger("derm.api")
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)-7s %(message)s")
 
+import ctypes  # noqa: E402
+import ctypes.util  # noqa: E402
+import gc  # noqa: E402
+
+# glibc's allocator holds freed memory in per-arena free lists and does not
+# always hand it back to the kernel, so a process that runs several torch
+# inferences shows an RSS that only ever climbs - eventually tripping the
+# memory ceiling on a small host (a 512MB container) and getting OOM-killed,
+# which the platform surfaces as a 502. malloc_trim(0) forces glibc to release
+# that reclaimable memory back to the OS. It is a Linux/glibc call and simply
+# does not exist on macOS, so the lookup is guarded and no-ops locally.
+try:
+    _LIBC: ctypes.CDLL | None = ctypes.CDLL(ctypes.util.find_library("c") or "libc.so.6")
+    if not hasattr(_LIBC, "malloc_trim"):
+        _LIBC = None
+except OSError:  # pragma: no cover - platform without a resolvable libc
+    _LIBC = None
+
+
+def release_memory() -> None:
+    """Collect Python garbage and return freed heap to the OS (glibc only)."""
+    gc.collect()
+    if _LIBC is not None:
+        try:
+            _LIBC.malloc_trim(0)
+        except Exception:  # noqa: BLE001 - best-effort; never fail a request over this
+            pass
+
 STATIC_DIR = Path(__file__).resolve().parent / "static"
 ALLOWED_CONTENT_TYPES = {
     "image/jpeg",
@@ -371,6 +399,10 @@ async def analyze(
         raise HTTPException(
             status.HTTP_500_INTERNAL_SERVER_ERROR, f"Analysis failed: {exc}"
         ) from exc
+    finally:
+        # Hand torch's transient inference allocations back to the OS so RSS
+        # does not creep up request over request on a memory-capped host.
+        release_memory()
 
     payload = result.to_dict()
     # Analysis responses are specific to uploaded bytes and must never be
@@ -436,6 +468,10 @@ async def analyze_batch(
             items.append(
                 {"filename": upload.filename, "ok": False, "error": str(exc), "result": None}
             )
+        finally:
+            # Release each image's transient allocations before the next one so
+            # a large batch cannot accumulate its way past the memory ceiling.
+            release_memory()
 
     successful = [item for item in items if item["ok"]]
     tiers: dict[str, int] = {}
